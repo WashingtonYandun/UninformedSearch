@@ -1,0 +1,2 @@
+# UninformedSearch
+Uninformed search problems
