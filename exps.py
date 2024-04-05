@@ -1,93 +1,127 @@
-from typing import List
+from collections import deque
+from typing import Dict, List, Optional
 
-class Node:
-    def __init__(self, value: int):
-        self.value: int = value
-        self.adjacent_nodes: List[Node] = []
+def create_graph_dict() -> Dict[int, List[int]]:
+    """Create a graph with predefined edges using a dictionary.
 
-def breadth_first_search(start_node: Node, goal: int) -> List[int]:
+    Returns:
+        Dict[int, List[int]]: A dictionary representing the graph.
+    """
+    edges: Dict[int, List[int]] = {
+        1: [2, 3],
+        2: [4, 5],
+        3: [6, 7],
+        4: [8, 9],
+        5: [10, 11],
+        6: [12, 13],
+        7: [14, 15],
+        8: [], 9: [], 10: [], 11: [],
+        12: [], 13: [], 14: [], 15: []
+    }
+    return edges
+
+def bfs_dict(graph: Dict[int, List[int]], start: int, goal: int) -> List[int]:
+    """Perform breadth-first search (BFS) using a dictionary-based graph representation.
+
+    Args:
+        graph (Dict[int, List[int]]): The graph to search.
+        start (int): The starting node.
+        goal (int): The goal node.
+
+    Returns:
+        List[int]: The visited nodes in BFS order.
+    """
     visited: List[int] = []
-    queue: List[Node] = [start_node]
-    
+    queue: deque[int] = deque([start])
+
     while queue:
-        node: Node = queue.pop(0)
-        if node.value == goal:
-            return visited
-        
-        visited.append(node.value)
-        for child in node.adjacent_nodes:
-            if child.value not in visited and child not in queue:
-                queue.append(child)
+        node: int = queue.popleft()
+        if node not in visited:
+            visited.append(node)
+            if node == goal:
+                break
+            for neighbor in sorted(graph[node]):
+                if neighbor not in visited:
+                    queue.append(neighbor)
     return visited
 
-def depth_first_search(start_node: Node, goal: int, visited: List[int] = None) -> List[int]:
-    if visited is None:
-        visited = []
-    
-    visited.append(start_node.value)
-    if start_node.value == goal:
-        return visited
-    
-    for child in start_node.adjacent_nodes:
-        if child.value not in visited:
-            result: List[int] = depth_first_search(child, goal, visited)
-            if result:
-                return visited
-    return visited
+def dfs_dict(graph: Dict[int, List[int]], start: int, goal: int) -> List[int]:
+    """Perform depth-first search (DFS) using a dictionary-based graph representation.
 
-def iterative_deepening_dfs(start_node: Node, goal: int) -> List[int]:
-    def dfs(node: Node, goal: int, depth: int, visited: List[int]) -> bool:
-        if node.value == goal:
-            return True
-        if depth <= 0:
-            return False
-        
-        visited.append(node.value)
-        for child in node.adjacent_nodes:
-            if child.value not in visited:
-                if dfs(child, goal, depth-1, visited):
-                    return True
-        visited.pop()
-        return False
-    
-    depth: int = 0
+    Args:
+        graph (Dict[int, List[int]]): The graph to search.
+        start (int): The starting node.
+        goal (int): The goal node.
+
+    Returns:
+        List[int]: The visited nodes in DFS order.
+    """
     visited: List[int] = []
-    while True:
-        if dfs(start_node, goal, depth, visited):
+    stack: List[int] = [start]
+
+    while stack:
+        node: int = stack.pop()
+        if node not in visited:
+            visited.append(node)
+            if node == goal:
+                break
+            for neighbor in sorted(graph[node], reverse=True):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+    return visited
+
+def ids_dict(graph: Dict[int, List[int]], start: int, goal: int, max_depth: int) -> Optional[List[int]]:
+    """Perform iterative deepening search (IDS) using a dictionary-based graph representation.
+
+    Args:
+        graph (Dict[int, List[int]]): The graph to search.
+        start (int): The starting node.
+        goal (int): The goal node.
+        max_depth (int): The maximum depth to search.
+
+    Returns:
+        Optional[List[int]]: The visited nodes in IDS order, if found.
+    """
+    def dls_dict(node: int, depth: int) -> bool:
+        """Depth-limited search helper function.
+
+        Args:
+            node (int): The current node.
+            depth (int): The current depth limit.
+
+        Returns:
+            bool: True if the goal node is found, False otherwise.
+        """
+        if node not in visited:
+            visited.append(node)
+            if node == goal or depth == 0:
+                return node == goal
+            elif depth > 0:
+                for neighbor in sorted(graph[node], reverse=True):
+                    if dls_dict(neighbor, depth - 1):
+                        return True
+        return False
+
+    for depth in range(max_depth + 1):
+        visited: List[int] = []
+        if dls_dict(start, depth):
             return visited
-        depth += 1
-        visited = []
+    return None
 
-# Define the graph using Node objects
-node1: Node = Node(1)
-node2: Node = Node(2)
-node3: Node = Node(3)
-node4: Node = Node(4)
-node5: Node = Node(5)
-node6: Node = Node(6)
-node7: Node = Node(7)
-node8: Node = Node(8)
-node9: Node = Node(9)
-node10: Node = Node(10)
-node11: Node = Node(11)
-node12: Node = Node(12)
-node13: Node = Node(13)
-node14: Node = Node(14)
-node15: Node = Node(15)
+def main() -> None:
+    """Main function to demonstrate dictionary-based graph search."""
+    graph: Dict[int, List[int]] = create_graph_dict()
+    start_node: int = 1
+    goal_node: int = 11
+    max_depth: int = 5
 
-node1.adjacent_nodes.extend([node2, node3])
-node2.adjacent_nodes.extend([node4, node5])
-node3.adjacent_nodes.extend([node6, node7])
-node4.adjacent_nodes.extend([node8, node9])
-node5.adjacent_nodes.extend([node10, node11])  # Goal node
-node6.adjacent_nodes.extend([node12, node13])
-node7.adjacent_nodes.extend([node14, node15])
+    bfs_visited: List[int] = bfs_dict(graph, start_node, goal_node)
+    dfs_visited: List[int] = dfs_dict(graph, start_node, goal_node)
+    ids_visited: List[int] = ids_dict(graph, start_node, goal_node, max_depth) or []
 
-# Perform the searches
-bfs_visited: List[int] = breadth_first_search(node1, 11)
-dfs_visited: List[int] = depth_first_search(node1, 11)
-iddfs_visited: List[int] = iterative_deepening_dfs(node1, 11)
+    print(f"BFS (Dictionary): {bfs_visited}")
+    print(f"DFS (Dictionary): {dfs_visited}")
+    print(f"IDS (Dictionary): {ids_visited}")
 
-print(bfs_visited)
-print(dfs_visited)
-print(iddfs_visited)
+if __name__ == "__main__":
+    main()
