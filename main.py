@@ -1,5 +1,8 @@
 from collections import deque
 from typing import Dict, List, Tuple
+import matplotlib.pyplot as plt
+import networkx as nx
+
 
 # Define the graph as a dictionary of integer nodes pointing to lists of integer nodes
 graph: Dict[int, List[int]] = {
@@ -80,6 +83,41 @@ def iddfs(graph: Dict[int, List[int]], start: int, goal: int) -> Tuple[List[int]
 
     return visited_order, path_to_goal
 
+
+def plot_search_algorithms(graph: Dict[int, List[int]], bfs_order: List[int], dfs_order: List[int], iddfs_order: List[int]):
+    # Initialize the graph
+    G = nx.Graph()
+
+    # Add nodes and edges
+    for node, edges in graph.items():
+        G.add_node(node)
+        for edge in edges:
+            G.add_edge(node, edge)
+
+    # Define positions for all nodes
+    pos = nx.spring_layout(G, seed=42)
+
+    # Create a figure with 3 subplots
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(24, 8))
+
+    # Plot BFS
+    nx.draw(G, pos, ax=axes[0], with_labels=True, node_size=700, node_color='tan', edge_color='grey')
+    nx.draw_networkx_nodes(G, pos, nodelist=bfs_order, node_color='lightblue', ax=axes[0])
+    axes[0].set_title('BFS Visited Nodes')
+
+    # Plot DFS
+    nx.draw(G, pos, ax=axes[1], with_labels=True, node_size=700, node_color='tan', edge_color='grey')
+    nx.draw_networkx_nodes(G, pos, nodelist=dfs_order, node_color='lightblue', ax=axes[1])
+    axes[1].set_title('DFS Visited Nodes')
+
+    # Plot IDDFS
+    nx.draw(G, pos, ax=axes[2], with_labels=True, node_size=700, node_color='tan', edge_color='grey')
+    nx.draw_networkx_nodes(G, pos, nodelist=iddfs_order[0], node_color='lightblue', ax=axes[2])
+    axes[2].set_title('IDDFS Visited Nodes')
+
+    plt.tight_layout()
+    plt.show()
+
 # Run each search algorithm
 bfs_order: List[int] = bfs(graph, 1, 11)
 dfs_order: List[int] = dfs(graph, 1, 11)
@@ -87,50 +125,4 @@ iddfs_order: Tuple[List[int], List[int]] = iddfs(graph, 1, 11)
 
 bfs_order, dfs_order, iddfs_order
 
-
-
-def main() -> None:
-    """Main function to execute graph searches and visualize results."""
-    G = create_graph()
-    start_node = 1
-    goal_node = 11
-    max_depth = 5
-
-    bfs_visited = bfs(G, start_node, goal_node)
-    dfs_visited = dfs(G, start_node, goal_node)
-    ids_visited = ids(G, start_node, goal_node, max_depth) or []
-
-    print(f"BFS: {bfs_visited}")
-    print(f"DFS: {dfs_visited}")
-    print(f"IDS: {ids_visited}")
-
-    draw_graph(G, bfs_visited, dfs_visited, ids_visited)
-
-
-def draw_graph(G: nx.Graph, bfs_visited: List[int], dfs_visited: List[int], ids_visited: List[int]) -> None:
-    _, axes = plt.subplots(1, 3, figsize=(18, 6))
-
-    # BFS
-    nx.draw(G, pos=nx.spring_layout(G), with_labels=True, 
-            node_color=['skyblue' if node in bfs_visited else 'tan' for node in G.nodes], 
-            ax=axes[0])
-    axes[0].set_title("BFS")
-
-    # DFS
-    nx.draw(G, pos=nx.spring_layout(G), with_labels=True, 
-            node_color=['skyblue' if node in dfs_visited else 'tan' for node in G.nodes], 
-            ax=axes[1])
-    axes[1].set_title("DFS")
-
-    # IDS
-    nx.draw(G, pos=nx.spring_layout(G), with_labels=True, 
-            node_color=['skyblue' if node in ids_visited else 'tan' for node in G.nodes], 
-            ax=axes[2])
-    axes[2].set_title("IDS")
-
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()
+plot_search_algorithms(graph, bfs_order, dfs_order, iddfs_order)
